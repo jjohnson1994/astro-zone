@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vscode/
+*.log.DS_Store
+.DS_Store
+*.DS_Store
+tags
+.vim
+*.psd
