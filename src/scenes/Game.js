@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import Channel from '../channel'
 import Bullet from '../bullet'
 import Asteroid from '../asteroid'
+import Explosion from '../explosion'
 import AsteroidPositions from '../asteroid-positions'
 
 let
@@ -18,7 +19,10 @@ let
   background6,
   bullets,
   asteroids,
-  damageText
+  damageText,
+  damage2Text,
+  playerScore,
+  player2Score
 
 let lastFired = 0
 let fireLimit = 100
@@ -29,13 +33,9 @@ const player2Data = {
   y: 0,
   rotation: 0,
   speed: 0,
-  damage: 0
+  damage: 0,
+  score: 0
 }
-
-const randomAsteroisPositions = count => new Array(count).fill(0).reduce((acc, cur, idx) => {
-  acc.push({ id: idx, x: Math.random() * 10000, y: Math.random() * 1000, size: Math.floor(Math.random() * 5) + 1 })
-  return acc
-}, [])
 
 const setCircularBody = body => {
   body.setCircle(
@@ -50,6 +50,20 @@ const setCircularBodyPlayer = body => {
   )
 }
 
+const intToHex = int => {
+  int.toString(16)
+}
+
+const hexToInt = string => {
+  parseInt(string, 16)
+}
+
+const leftPadScore = score => {
+  const pad = '00000000'
+  const strScore = `${score}`
+  return pad.substring(0, pad.length - strScore.length) + strScore
+}
+
 export default class extends Phaser.Scene {
   constructor () {
     super({ key: 'GameScene' })
@@ -58,9 +72,6 @@ export default class extends Phaser.Scene {
     Channel.onJoin((event) => {
       console.log('player joined')
       player2Data.openTokID = event.target.connection.id
-
-      const asteroidMap = randomAsteroisPositions(25)
-      console.log(asteroidMap)
     })
 
     Channel.onPlayer2Updated(data => {
@@ -68,7 +79,16 @@ export default class extends Phaser.Scene {
       player2Data.y = data.y
       player2Data.rotation = data.rotation
       player2Data.speed = data.speed
-      player2Data.damage = data.damage
+      player2Data.damage = data.damage || 0
+      player2Data.score = data.score
+
+      player2Score.setText(leftPadScore(data.score))
+      damage2Text.setText(`❤ ${(((255 - data.damage) / 255) * 100).toFixed(2)}%`)
+
+      // const damagePerc = (((255 - data.damage) / 255) * 100)
+      // const damHex = intToHex(damagePerc)
+
+      // player2.setTint(`0x${damHex}ff0000`)
     })
 
     Channel.initSession()
@@ -99,6 +119,9 @@ export default class extends Phaser.Scene {
     this.load.image('asteroid4', '../../assets/Asteroids/PNG/asteroid_04.png')
     this.load.image('asteroid5', '../../assets/Asteroids/PNG/asteroid_05.png')
     this.load.image('asteroid6', '../../assets/Asteroids/PNG/asteroid_06.png')
+
+    // Explosion
+    this.load.image('explosion', '../../assets/Explosions/PNG/explosion.png')
 
     // Weapons
     this.load.image('bullet_small', '../../assets/Weapons/PNG/bullet_blaster_small_single.png')
@@ -132,7 +155,8 @@ export default class extends Phaser.Scene {
     player.setAngularDrag(400)
     player.setMaxVelocity(600)
 
-    // Player Particle Emitters
+    // Player Particle Emitterso
+      /**
     const player1Particles = this.add.particles('green')
     const player2Particles = this.add.particles('red')
 
@@ -178,6 +202,7 @@ export default class extends Phaser.Scene {
 
     player1Emitter.startFollow(player)
     player2Emitter.startFollow(player2)
+    */
 
     // Bullets
     bullets = this.physics.add.group({
@@ -187,6 +212,7 @@ export default class extends Phaser.Scene {
     })
 
     asteroids = this.physics.add.group({
+      immovable: true
     })
 
     // Add Asteroids
@@ -202,22 +228,48 @@ export default class extends Phaser.Scene {
       )
     })
 
-    // Collisions
+    /**
+     * Collisions
+     */
+
+    // Player hits asteroid
     this.physics.add.collider(player, asteroids, () => {
       const playerDamage = player.getData('damage') || 0
       const newPlayerDamage = playerDamage + 1
 
       player.setData('damage', newPlayerDamage)
-      damageText.setText(`❤ ${100 - newPlayerDamage}%`)
+
+      damageText.setText(`❤ ${(((255 - newPlayerDamage) / 255) * 100).toFixed(2)}%`)
     })
 
-    this.physics.add.collider(bullets, asteroids, () => {
+    // Bullet hits asteroid
+    this.physics.add.collider(bullets, asteroids, (bullet, asteroid) => {
+      bullet.destroy()
+
+      asteroid.setData('health', (asteroid.getData('health') || 255) - 10)
+      player.setData('score', (player.getData('score') || 0) + 100)
+
+      if (asteroid.getData('health') <= 0) {
+        console.log('asteroid dead')
+        asteroid.destroy()
+        player.setData('score', (player.getData('score') || 0) + asteroid.width)
+      }
+
+      playerScore.setText(leftPadScore(player.getData('score')))
     })
 
     // HUD
-    damageText = this.add.text(this.cameras.main.width - 150, this.cameras.main.height - 50, '❤ 100%', { fontSize: '32px', fill: '#fff' })
+    damageText = this.add.text(20, this.cameras.main.height - 50, '❤ 100.00%', { fontSize: '32px', fill: '#fff' })
     damageText.setScrollFactor(0)
 
+    damage2Text = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 50, '❤ 100.00%', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
+    damage2Text.setScrollFactor(0)
+
+    playerScore = this.add.text(20, 20, '000000', { fontSize: '32px', fill: '#fff' })
+    playerScore.setScrollFactor(0)
+
+    player2Score = this.add.text(this.cameras.main.width - 20, 20, '000000', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
+    player2Score.setScrollFactor(0)
 
     // Sync Player data
     setInterval(() => {
@@ -225,7 +277,9 @@ export default class extends Phaser.Scene {
         x: player.x,
         y: player.y,
         rotation: player.rotation,
-        speed: player.body.speed
+        speed: player.body.speed,
+        damage: player.getData('damage'),
+        score: player.getData('score')
       })
     }, 1000 / 24)
   }
