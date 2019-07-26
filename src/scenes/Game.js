@@ -1,4 +1,3 @@
-/* globals __DEV__ */
 import Phaser from 'phaser'
 import Channel from '../channel'
 import Bullet from '../bullet'
@@ -137,8 +136,17 @@ export default class extends Phaser.Scene {
     background6 = this.add.image(0, 0, 'background6').setDepth(2)
 
     // Add Player 1
-    player = this.physics.add.image(0, 0, 'player').setDepth(1).setScale(0.5)
-    player2 = this.physics.add.image(0, 0, 'player2').setDepth(1).setScale(0.5)
+    player = this.physics.add.image(
+      70,
+      Math.random() * this.cameras.main.height,
+      'player'
+    ).setDepth(1).setScale(0.5)
+
+    player2 = this.physics.add.image(
+      70,
+      (Math.random() * this.cameras.main.height - 100) + 50,
+      'player2'
+    ).setDepth(1).setScale(0.5)
 
     setCircularBodyPlayer(player)
     setCircularBodyPlayer(player2)
@@ -146,7 +154,6 @@ export default class extends Phaser.Scene {
     // Camera
     this.cameras.main.startFollow(player)
     this.cameras.main.setBounds(0, 0, 600, 500)
-
 
     // Controlls
     cursors = this.input.keyboard.createCursorKeys()
@@ -158,7 +165,7 @@ export default class extends Phaser.Scene {
     player.setMaxVelocity(600)
 
     // Player Particle Emitterso
-      /**
+    /**
     const player1Particles = this.add.particles('green')
     const player2Particles = this.add.particles('red')
 
@@ -296,6 +303,8 @@ export default class extends Phaser.Scene {
   }
 
   update (time, delta) {
+    this.physics.world.wrap(player, 48)
+
     if (cursors.left.isDown) {
       player.setAngularVelocity(-150)
     } else if (cursors.right.isDown) {
@@ -322,18 +331,5 @@ export default class extends Phaser.Scene {
     player2.x = player2Data.x
     player2.y = player2Data.y
     player2.rotation = player2Data.rotation
-
-    background1.x += player.body.deltaX() * 0.3
-    background1.y += player.body.deltaY() * 0.3
-    background2.x += player.body.deltaX() * 0.5
-    background2.y += player.body.deltaY() * 0.5
-    background3.x += player.body.deltaX() * 0.5
-    background3.y += player.body.deltaY() * 0.5
-    background4.x += player.body.deltaX() * 0.6
-    background4.y += player.body.deltaY() * 0.6
-    background5.x += player.body.deltaX() * 0.7
-    background5.y += player.body.deltaY() * 0.7
-    background6.x += player.body.deltaX() * 0.8
-    background6.y += player.body.deltaY() * 0.8
   }
 }
