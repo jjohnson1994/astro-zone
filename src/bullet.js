@@ -13,24 +13,23 @@ export default new Phaser.Class({
 
     this._temp = new Phaser.Math.Vector2()
   },
-  fire: function (ship) {
+  fire: function (player) {
     this.lifespan = 1000
 
     this.setActive(true)
     this.setVisible(true)
-    // this.setRotation(ship.rotation);
-    this.setAngle(ship.body.rotation)
-    this.setPosition(ship.x, ship.y)
-    this.body.reset(ship.x, ship.y)
+    this.setAngle(player.body.rotation)
+    this.setPosition(player.x, player.y)
+    this.body.reset(player.x, player.y)
 
-    var angle = Phaser.Math.DegToRad(ship.body.rotation)
+    var angle = Phaser.Math.DegToRad(player.body.rotation)
 
-    // this.body.world.velocityFromRotation(angle, this.speed + ship.body.speed, this.body.velocity);
     this.scene.physics.velocityFromRotation(angle, this.speed, this.body.velocity)
 
     this.body.velocity.x *= 2
     this.body.velocity.y *= 2
   },
+
   update: function (time, delta) {
     this.lifespan -= delta
 

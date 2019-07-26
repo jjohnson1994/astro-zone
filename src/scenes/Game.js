@@ -2,8 +2,24 @@
 import Phaser from 'phaser'
 import Channel from '../channel'
 import Bullet from '../bullet'
+import Asteroid from '../asteroid'
+import AsteroidPositions from '../asteroid-positions'
 
-let cursors, fire, player, player2, background1, background2, background3, background4, background5, background6, bullets
+let
+  cursors,
+  fire,
+  player,
+  player2,
+  background1,
+  background2,
+  background3,
+  background4,
+  background5,
+  background6,
+  bullets,
+  asteroids,
+  damageText
+
 let lastFired = 0
 let fireLimit = 100
 
@@ -13,7 +29,25 @@ const player2Data = {
   y: 0,
   rotation: 0,
   speed: 0,
-  damage: ''
+  damage: 0
+}
+
+const randomAsteroisPositions = count => new Array(count).fill(0).reduce((acc, cur, idx) => {
+  acc.push({ id: idx, x: Math.random() * 10000, y: Math.random() * 1000, size: Math.floor(Math.random() * 5) + 1 })
+  return acc
+}, [])
+
+const setCircularBody = body => {
+  body.setCircle(
+    body.height > body.width ? body.width / 2 : body.height / 2
+  )
+}
+
+const setCircularBodyPlayer = body => {
+  body.setCircle(
+    body.height > body.width ? body.width / 4 : body.height / 4,
+    body.width / 4, body.height / 4
+  )
 }
 
 export default class extends Phaser.Scene {
@@ -22,7 +56,11 @@ export default class extends Phaser.Scene {
   }
   init () {
     Channel.onJoin((event) => {
+      console.log('player joined')
       player2Data.openTokID = event.target.connection.id
+
+      const asteroidMap = randomAsteroisPositions(25)
+      console.log(asteroidMap)
     })
 
     Channel.onPlayer2Updated(data => {
@@ -54,6 +92,14 @@ export default class extends Phaser.Scene {
     this.load.image('player2V2', '../../assets/Spaceships/PNG/CX16-X2.png')
     this.load.image('player2V3', '../../assets/Spaceships/PNG/CX16-X3.png')
 
+    // Asteroids
+    this.load.image('asteroid1', '../../assets/Asteroids/PNG/asteroid_01.png')
+    this.load.image('asteroid2', '../../assets/Asteroids/PNG/asteroid_02.png')
+    this.load.image('asteroid3', '../../assets/Asteroids/PNG/asteroid_03.png')
+    this.load.image('asteroid4', '../../assets/Asteroids/PNG/asteroid_04.png')
+    this.load.image('asteroid5', '../../assets/Asteroids/PNG/asteroid_05.png')
+    this.load.image('asteroid6', '../../assets/Asteroids/PNG/asteroid_06.png')
+
     // Weapons
     this.load.image('bullet_small', '../../assets/Weapons/PNG/bullet_blaster_small_single.png')
   }
@@ -71,6 +117,9 @@ export default class extends Phaser.Scene {
     player = this.physics.add.image(0, 0, 'player').setDepth(1).setScale(0.5)
     player2 = this.physics.add.image(0, 0, 'player2').setDepth(1).setScale(0.5)
 
+    setCircularBodyPlayer(player)
+    setCircularBodyPlayer(player2)
+
     // Camera
     this.cameras.main.startFollow(player)
 
@@ -84,7 +133,6 @@ export default class extends Phaser.Scene {
     player.setMaxVelocity(600)
 
     // Player Particle Emitters
-    /**
     const player1Particles = this.add.particles('green')
     const player2Particles = this.add.particles('red')
 
@@ -130,7 +178,6 @@ export default class extends Phaser.Scene {
 
     player1Emitter.startFollow(player)
     player2Emitter.startFollow(player2)
-    */
 
     // Bullets
     bullets = this.physics.add.group({
@@ -139,8 +186,41 @@ export default class extends Phaser.Scene {
       runChildUpdate: true
     })
 
+    asteroids = this.physics.add.group({
+    })
+
+    // Add Asteroids
+    AsteroidPositions.forEach(({ id, x, y, size }) => {
+      const asteroid = this.physics.add.image(x, y, `asteroid${size}`)
+      asteroid.setScale(0.3)
+      asteroids.add(asteroid)
+
+      setCircularBody(asteroid)
+
+      asteroid.setCircle(
+        asteroid.height > asteroid.width ? asteroid.width / 2 : asteroid.height / 2
+      )
+    })
+
+    // Collisions
+    this.physics.add.collider(player, asteroids, () => {
+      const playerDamage = player.getData('damage') || 0
+      const newPlayerDamage = playerDamage + 1
+
+      player.setData('damage', newPlayerDamage)
+      damageText.setText(`❤ ${100 - newPlayerDamage}%`)
+    })
+
+    this.physics.add.collider(bullets, asteroids, () => {
+    })
+
+    // HUD
+    damageText = this.add.text(this.cameras.main.width - 150, this.cameras.main.height - 50, '❤ 100%', { fontSize: '32px', fill: '#fff' })
+    damageText.setScrollFactor(0)
+
+
     // Sync Player data
-    window.setInterval(() => {
+    setInterval(() => {
       Channel.signalPlayerData({
         x: player.x,
         y: player.y,
