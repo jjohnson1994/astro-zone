@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
+  <head>
     <meta charset="UTF-8">
     <title>Phaser - ES6 - Webpack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -13,20 +13,24 @@
     <script src="https://static.opentok.com/v2/js/opentok.js"></script>
 
     <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
+html,
+body {
+  margin: 0;
+  padding: 0;
+    background-color: black;
+}
+        div[id^=OT] {
+          display: none;
         }
     </style>
-</head>
+  </head>
 
-<body>
+  <body style="display: flex; height: 100vh; justify-content: center; align-items: center">
 
     <div id="content"></div>
     <script src="dist/vendor.bundle.js"></script>
     <script src="dist/bundle.js"></script>
 
-</body>
+  </body>
 
 </html>
