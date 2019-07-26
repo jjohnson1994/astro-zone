@@ -5,5 +5,12 @@ export default {
   parent: 'content',
   width: 800,
   height: 600,
-  localStorageName: 'phasergame'
+  localStorageName: 'phasergame',
+  physics: {
+    default: 'arcade',
+    arcade: {
+      debug: true,
+      gravity: { y: 0 }
+    }
+  }
 }
