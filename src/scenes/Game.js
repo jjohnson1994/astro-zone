@@ -21,7 +21,8 @@ let
   damageText,
   damage2Text,
   playerScore,
-  player2Score
+  player2Score,
+  countDown
 
 let lastFired = 0
 let fireLimit = 100
@@ -60,6 +61,12 @@ const hexToInt = string => {
 const leftPadScore = score => {
   const pad = '00000000'
   const strScore = `${score}`
+  return pad.substring(0, pad.length - strScore.length) + strScore
+}
+
+const leftPadCountdown = countdown => {
+  const pad = '000'
+  const strScore = `${countdown}`
   return pad.substring(0, pad.length - strScore.length) + strScore
 }
 
@@ -163,6 +170,7 @@ export default class extends Phaser.Scene {
     player.setDrag(300)
     player.setAngularDrag(400)
     player.setMaxVelocity(600)
+    player.setCollideWorldBounds(true)
 
     // Player Particle Emitterso
     /**
@@ -289,6 +297,8 @@ export default class extends Phaser.Scene {
     player2Score = this.add.text(this.cameras.main.width - 20, 20, '000000', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
     player2Score.setScrollFactor(0)
 
+    countDown = this.add.text(this.cameras.main.width / 2, 20, '00:00', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5, 0)
+
     // Sync Player data
     setInterval(() => {
       Channel.signalPlayerData({
@@ -303,7 +313,9 @@ export default class extends Phaser.Scene {
   }
 
   update (time, delta) {
-    this.physics.world.wrap(player, 48)
+    countDown.setText(leftPadCountdown(150 - (time / 1000).toFixed()))
+
+    // this.physics.world.wrap(player, 48)
 
     if (cursors.left.isDown) {
       player.setAngularVelocity(-150)
