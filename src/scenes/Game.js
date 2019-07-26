@@ -121,7 +121,7 @@ export default class extends Phaser.Scene {
     this.load.image('asteroid6', '../../assets/Asteroids/PNG/asteroid_06.png')
 
     // Explosion
-    this.load.image('explosion', '../../assets/Explosions/PNG/explosion.png')
+    this.load.spritesheet('explosion', '../../assets/Explosions/PNG/explosion.png', { frameWidth: 140, frameHeight: 140 })
 
     // Weapons
     this.load.image('bullet_small', '../../assets/Weapons/PNG/bullet_blaster_small_single.png')
@@ -145,6 +145,8 @@ export default class extends Phaser.Scene {
 
     // Camera
     this.cameras.main.startFollow(player)
+    this.cameras.main.setBounds(0, 0, 600, 500)
+
 
     // Controlls
     cursors = this.input.keyboard.createCursorKeys()
@@ -204,6 +206,14 @@ export default class extends Phaser.Scene {
     player2Emitter.startFollow(player2)
     */
 
+    // Animations
+    this.anims.create({
+      key: 'explosion',
+      frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 8 }),
+      frameRate: 10,
+      repeat: -1
+    })
+
     // Bullets
     bullets = this.physics.add.group({
       classType: Bullet,
@@ -220,6 +230,7 @@ export default class extends Phaser.Scene {
       const asteroid = this.physics.add.image(x, y, `asteroid${size}`)
       asteroid.setScale(0.3)
       asteroids.add(asteroid)
+      asteroid.setVelocity(-200, 0)
 
       setCircularBody(asteroid)
 
@@ -246,7 +257,7 @@ export default class extends Phaser.Scene {
     this.physics.add.collider(bullets, asteroids, (bullet, asteroid) => {
       bullet.destroy()
 
-      asteroid.setData('health', (asteroid.getData('health') || 255) - 10)
+      asteroid.setData('health', (asteroid.getData('health') || 60) - 10)
       player.setData('score', (player.getData('score') || 0) + 100)
 
       if (asteroid.getData('health') <= 0) {
