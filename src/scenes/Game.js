@@ -25,7 +25,8 @@ let
   countDown
 
 let lastFired = 0
-let fireLimit = 100
+let fireLimit = 125
+let gameOver = false
 
 const player2Data = {
   openTokID: '',
@@ -50,14 +51,6 @@ const setCircularBodyPlayer = body => {
   )
 }
 
-const intToHex = int => {
-  int.toString(16)
-}
-
-const hexToInt = string => {
-  parseInt(string, 16)
-}
-
 const leftPadScore = score => {
   const pad = '00000000'
   const strScore = `${score}`
@@ -69,6 +62,17 @@ const leftPadCountdown = countdown => {
   const strScore = `${countdown}`
   return pad.substring(0, pad.length - strScore.length) + strScore
 }
+
+const endGameDate = () => ({
+  player: {
+    score: player.getData('score'),
+    damage: player.getData('damage')
+  },
+  player2: {
+    score: player2Data.score,
+    damage: player2Data.damage
+  }
+})
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -86,10 +90,10 @@ export default class extends Phaser.Scene {
       player2Data.rotation = data.rotation
       player2Data.speed = data.speed
       player2Data.damage = data.damage || 0
-      player2Data.score = data.score
+      player2Data.score = data.score || 0
 
-      player2Score.setText(leftPadScore(data.score))
-      damage2Text.setText(`❤ ${(((255 - data.damage) / 255) * 100).toFixed(2)}%`)
+      player2Score.setText(leftPadScore(player2Data.score))
+      damage2Text.setText(`❤ ${(((255 - player2Data.damage) / 255) * 100).toFixed(2)}%`)
 
       // const damagePerc = (((255 - data.damage) / 255) * 100)
       // const damHex = intToHex(damagePerc)
@@ -97,40 +101,20 @@ export default class extends Phaser.Scene {
       // player2.setTint(`0x${damHex}ff0000`)
     })
 
+    Channel.onGameOver(() => {
+      gameOver = true
+      this.scene.start(
+        'GameOver',
+        {
+          timedOut: false,
+          ...endGameDate()
+        }
+      )
+    })
+
     Channel.initSession()
   }
   preload () {
-    // Background textures
-    this.load.image('background1', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_01.png')
-    this.load.image('background2', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_02.png')
-    this.load.image('background3', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_03.png')
-    this.load.image('background4', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_04.png')
-    this.load.image('background5', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_05.png')
-    this.load.image('background6', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_06.png')
-    this.load.image('red', '../../assets/Particles/red.png')
-    this.load.image('green', '../../assets/Particles/green.png')
-
-    // Player textures
-    this.load.image('player', '../../assets/Spaceships/PNG/DKO-api-X1.png')
-    this.load.image('playerV2', '../../assets/Spaceships/PNG/DKO-api-X2.png')
-    this.load.image('playerV3', '../../assets/Spaceships/PNG/DKO-api-X3.png')
-    this.load.image('player2', '../../assets/Spaceships/PNG/CX16-X1.png')
-    this.load.image('player2V2', '../../assets/Spaceships/PNG/CX16-X2.png')
-    this.load.image('player2V3', '../../assets/Spaceships/PNG/CX16-X3.png')
-
-    // Asteroids
-    this.load.image('asteroid1', '../../assets/Asteroids/PNG/asteroid_01.png')
-    this.load.image('asteroid2', '../../assets/Asteroids/PNG/asteroid_02.png')
-    this.load.image('asteroid3', '../../assets/Asteroids/PNG/asteroid_03.png')
-    this.load.image('asteroid4', '../../assets/Asteroids/PNG/asteroid_04.png')
-    this.load.image('asteroid5', '../../assets/Asteroids/PNG/asteroid_05.png')
-    this.load.image('asteroid6', '../../assets/Asteroids/PNG/asteroid_06.png')
-
-    // Explosion
-    this.load.spritesheet('explosion', '../../assets/Explosions/PNG/explosion.png', { frameWidth: 140, frameHeight: 140 })
-
-    // Weapons
-    this.load.image('bullet_small', '../../assets/Weapons/PNG/bullet_blaster_small_single.png')
   }
 
   create () {
@@ -301,19 +285,22 @@ export default class extends Phaser.Scene {
 
     // Sync Player data
     setInterval(() => {
-      Channel.signalPlayerData({
-        x: player.x,
-        y: player.y,
-        rotation: player.rotation,
-        speed: player.body.speed,
-        damage: player.getData('damage'),
-        score: player.getData('score')
-      })
+      if (!gameOver) {
+        Channel.signalPlayerData({
+          x: player.x,
+          y: player.y,
+          rotation: player.rotation,
+          speed: player.body.speed,
+          damage: player.getData('damage'),
+          score: player.getData('score')
+        })
+      }
     }, 1000 / 24)
   }
 
-  update (time, delta) {
-    countDown.setText(leftPadCountdown(150 - (time / 1000).toFixed()))
+  update (time) {
+    const timeLeft = (150 - (time / 1000)).toFixed()
+    countDown.setText(leftPadCountdown(timeLeft))
 
     // this.physics.world.wrap(player, 48)
 
@@ -338,6 +325,31 @@ export default class extends Phaser.Scene {
         lastFired = time + fireLimit
         bullet.fire(player)
       }
+    }
+
+    if (player.getData('damage') >= 255) {
+      console.log('player dead')
+      gameOver = true
+      Channel.signalGameOver()
+      this.scene.start(
+        'GameOver',
+        {
+          timedOut: false,
+          ...endGameDate()
+        }
+      )
+    }
+
+    if (timeLeft <= 0) {
+      gameOver = true
+      Channel.signalGameOver()
+      this.scene.start(
+        'GameOver',
+        {
+          timedOut: true,
+          ...endGameDate()
+        }
+      )
     }
 
     player2.x = player2Data.x

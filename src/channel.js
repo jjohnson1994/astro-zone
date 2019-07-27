@@ -8,12 +8,15 @@ var token = 'T1==cGFydG5lcl9pZD00NjM5MzQ5MiZzaWc9ODJmMDdlZTJiZmE0ODUyZDQ0ZGMzOTZ
 let session
 let onJoinEvent = () => {}
 let onPlayer2UpdatedFunc = () => {}
+let onGameOverFunc = () => {}
 
 const channel = {
   initSession,
   onJoin: func => { onJoinEvent = func },
   onPlayer2Updated: func => { onPlayer2UpdatedFunc = func },
-  signalPlayerData
+  onGameOver: func => { onGameOverFunc = func },
+  signalPlayerData,
+  signalGameOver
 }
 
 function emmitOnJoin (event) {
@@ -22,6 +25,10 @@ function emmitOnJoin (event) {
 
 function emmitPlayer2Updated (event) {
   onPlayer2UpdatedFunc(event)
+}
+
+function emmitGameOver (event) {
+  onGameOverFunc(event)
 }
 
 // Handling all of our errors here by alerting them
@@ -70,6 +77,13 @@ function initSession () {
     }
   })
 
+  session.on('signal:GAME_OVER', event => {
+    console.log('game over')
+    if (event.from.connectionId !== session.connection.connectionId) {
+      emmitGameOver()
+    }
+  })
+
   /**
    * Publishing
    */
@@ -99,6 +113,10 @@ function initSession () {
       )
     }
   })
+}
+
+function signalGameOver () {
+  session.signal({ type: ChannelEvents.gameOver })
 }
 
 function signalPlayerData (data) {
