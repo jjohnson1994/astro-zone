@@ -328,7 +328,6 @@ export default class extends Phaser.Scene {
     }
 
     if (player.getData('damage') >= 255) {
-      console.log('player dead')
       gameOver = true
       Channel.signalGameOver()
       this.scene.start(

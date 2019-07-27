@@ -5,7 +5,8 @@ let
   playerLost,
   playerScore,
   player2Score,
-  playerScoreDisp
+  playerScoreDisp,
+  player2ScoreDisp
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -24,20 +25,20 @@ export default class extends Phaser.Scene {
     playerScoreDisp = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, winString)
     playerScoreDisp.setOrigin(0.5, 1)
 
-    this.add.text(
+    playerScoreDisp = this.add.text(
       this.cameras.main.width / 3,
       this.cameras.main.height / 2 + 50,
       `Player 1: ${player2Score}`
     )
       .setOrigin(0.5, 1)
-      .setShadow(2, 2, '#000', 2, true, false)
+    playerScoreDisp.setShadow(0, 0, '#000', 5)
 
-    this.add.text(
-      (this.cameras.main.width / 3) * 2, 
-      this.cameras.main.height / 2 + 50, 
+    player2ScoreDisp = this.add.text(
+      (this.cameras.main.width / 3) * 2,
+      this.cameras.main.height / 2 + 50,
       `Player 2: ${player2Score}`
     )
       .setOrigin(0.5, 1)
-      .setShadow(2, 2, '#000', 2, true, false)
+    player2ScoreDisp.setShadow(0, 0, '#000', 5)
   }
 }

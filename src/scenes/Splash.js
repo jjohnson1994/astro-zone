@@ -16,7 +16,7 @@ export default class extends Phaser.Scene {
     this.load.image('background4', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_04.png')
     this.load.image('background5', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_05.png')
     this.load.image('background6', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_06.png')
-    this.load.image('background7', '../../assets/Backgrounds/PNG_and_JPG/background_03_static.jpg')
+    this.load.image('background7', '../../assets/Backgrounds/PNG_and_JPG/background_02_static.png')
     this.load.image('red', '../../assets/Particles/red.png')
     this.load.image('green', '../../assets/Particles/green.png')
 
