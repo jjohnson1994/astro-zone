@@ -24,7 +24,20 @@ export default class extends Phaser.Scene {
     playerScoreDisp = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, winString)
     playerScoreDisp.setOrigin(0.5, 1)
 
-    this.add.text(this.cameras.main.width / 3, this.cameras.main.height / 2 + 50, `Player 1: ${player2Score}`)
-    this.add.text((this.cameras.main.width / 3) * 2, this.cameras.main.height / 2 + 50, `Player 2: ${player2Score}`)
+    this.add.text(
+      this.cameras.main.width / 3,
+      this.cameras.main.height / 2 + 50,
+      `Player 1: ${player2Score}`
+    )
+      .setOrigin(0.5, 1)
+      .setShadow(2, 2, '#000', 2, true, false)
+
+    this.add.text(
+      (this.cameras.main.width / 3) * 2, 
+      this.cameras.main.height / 2 + 50, 
+      `Player 2: ${player2Score}`
+    )
+      .setOrigin(0.5, 1)
+      .setShadow(2, 2, '#000', 2, true, false)
   }
 }
