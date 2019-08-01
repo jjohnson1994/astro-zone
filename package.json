@@ -27,6 +27,7 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "firebase": "^6.3.3",
     "phaser": "^3.0.0",
     "webfontloader": "^1.6.28"
   }

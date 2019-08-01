@@ -1,7 +1,11 @@
 import Phaser from 'phaser'
+import firebase from '../firebase'
 
 let
-  background
+  background,
+  globalHighScore,
+  player2Status,
+  playButton
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -49,12 +53,55 @@ export default class extends Phaser.Scene {
 
     // GUI
     this.load.image('game_logo', '../../assets/GUI/PNG/game_logo.png')
+    this.load.image('mainButton1', '../../assets/GUI/PNG/main_button_1.png')
+    this.load.image('buttonArrowRight', '../../assets/GUI/PNG/button_arrow_right.png')
+
   }
 
   create () {
-    this.background = this.add.image(0, 0, 'background8')
-    this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'game_logo').setOrigin(0.5, 0.5).setScale(0.5)
-    // this.scene.start('GameScene')
+    background = this.add.image(0, 0, 'background8')
+    playButton = this.add.image(
+      this.cameras.main.width / 2,
+      this.cameras.main.height * 0.8,
+      'mainButton1'
+    )
+      .setScale(0.4)
+      .setInteractive()
+
+    this.add.image(
+      (this.cameras.main.width / 2) - 152,
+      (this.cameras.main.height * 0.8) - 2,
+      'buttonArrowRight'
+    )
+      .setScale(0.6)
+
+    this.add.image(
+      this.cameras.main.width / 2,
+      this.cameras.main.height * 0.4,
+      'game_logo'
+    )
+      .setOrigin(0.5, 0.5)
+      .setScale(0.6)
+
+    this.add.text(25, 20, 'TOP SCORE', { fontSize: '20px', fill: '#fff' })
+    globalHighScore = this.add.text(20, 40, '000000', { fontSize: '42px', fill: '#fff' })
+    firebase.getTopScore().then(({ topScore, initials }) => {
+      globalHighScore.setText(`${initials}_` + `${topScore}`.padStart(6, '0'))
+    })
+
+    player2Status = this.add.text(
+      this.cameras.main.width / 2,
+      (this.cameras.main.height * 0.8) + 5,
+      'PLAY',
+      { fontSize: '25px', fill: '#f0ffff' }
+    ).setOrigin(0.5, 0.5)
+
+    playButton.once(
+      'pointerup',
+      () => {
+        this.scene.start('GameScene')
+      }
+    )
   }
 
   update () {}
