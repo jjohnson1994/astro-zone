@@ -23,7 +23,8 @@ let
   playerScore,
   player2Score,
   countDown,
-  waitingOnPlayerText
+  waitingOnPlayerText,
+  explosions
 
 let lastFired = 0
 let fireLimit = 125
@@ -112,6 +113,7 @@ export default class extends Phaser.Scene {
 
     Channel.initSession()
   }
+
   preload () {
   }
 
@@ -211,6 +213,7 @@ export default class extends Phaser.Scene {
       repeat: -1
     })
 
+
     // Bullets
     bullets = this.physics.add.group({
       classType: Bullet,
@@ -239,6 +242,11 @@ export default class extends Phaser.Scene {
     /**
      * Collisions
      */
+    explosions = this.physics.add.group({
+      classType: Explosion,
+      maxSize: 30,
+      runChildUpdate: true
+    })
 
     // Player hits asteroid
     this.physics.add.collider(player, asteroids, () => {
@@ -248,22 +256,36 @@ export default class extends Phaser.Scene {
       player.setData('damage', newPlayerDamage)
 
       damageText.setText(`❤ ${(((255 - newPlayerDamage) / 255) * 100).toFixed(2)}%`)
+
+      const explosion = explosions.get()
+      if (explosion) {
+        explosion.explode(player.x, player.y)
+        // explosion.anims.add('explosion')
+        // explosion.anims.play('explosion')
+      }
     })
 
     // Bullet hits asteroid
     this.physics.add.collider(bullets, asteroids, (bullet, asteroid) => {
       bullet.destroy()
 
-      asteroid.setData('health', (asteroid.getData('health') || 60) - 10)
+      asteroid.setData('health', (asteroid.getData('health') || 30) - 10)
       player.setData('score', (player.getData('score') || 0) + 100)
 
       if (asteroid.getData('health') <= 0) {
-        console.log('asteroid dead')
         asteroid.destroy()
         player.setData('score', (player.getData('score') || 0) + asteroid.width)
       }
 
       playerScore.setText(leftPadScore(player.getData('score')))
+
+      const explosion = explosions.get()
+      if (explosion) {
+        console.log(explosion);
+        explosion.explode(bullet.x, bullet.y)
+        // explosion.anims.add('explosion')
+        // explosion.anims.play('explosion')
+      }
     })
 
     // HUD
