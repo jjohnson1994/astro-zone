@@ -1,5 +1,8 @@
 import Phaser from 'phaser'
 
+let
+  background
+
 export default class extends Phaser.Scene {
   constructor () {
     super({ key: 'SplashScene' })
@@ -17,6 +20,7 @@ export default class extends Phaser.Scene {
     this.load.image('background5', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_05.png')
     this.load.image('background6', '../../assets/Backgrounds/PNG_and_JPG/background_01_parallax_06.png')
     this.load.image('background7', '../../assets/Backgrounds/PNG_and_JPG/background_02_static.png')
+    this.load.image('background8', '../../assets/GUI/PNG/background_menu.png')
     this.load.image('red', '../../assets/Particles/red.png')
     this.load.image('green', '../../assets/Particles/green.png')
 
@@ -42,10 +46,15 @@ export default class extends Phaser.Scene {
     // Weapons
     this.load.image('bullet_small', '../../assets/Weapons/PNG/bullet_blaster_small_single.png')
     this.load.image('mushroom', 'assets/images/mushroom2.png')
+
+    // GUI
+    this.load.image('game_logo', '../../assets/GUI/PNG/game_logo.png')
   }
 
   create () {
-    this.scene.start('GameScene')
+    this.background = this.add.image(0, 0, 'background8')
+    this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'game_logo').setOrigin(0.5, 0.5).setScale(0.5)
+    // this.scene.start('GameScene')
   }
 
   update () {}
