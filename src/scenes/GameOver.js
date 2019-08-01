@@ -6,7 +6,9 @@ let
   playerScore,
   player2Score,
   playerScoreDisp,
-  player2ScoreDisp
+  player2ScoreDisp,
+  clickToPlayAgain,
+  background
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -21,7 +23,7 @@ export default class extends Phaser.Scene {
 
   preload () {
     const winString = playerLost ? 'YOU WON, U R THE BEST. U LEDGENDDDDDD' : 'LOSER! TRY NexT TiME YeaAH'
-    this.add.image(0, 0, 'background7')
+    background = this.add.image(0, 0, 'background7').setInteractive()
     playerScoreDisp = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, winString)
     playerScoreDisp.setOrigin(0.5, 1)
 
@@ -40,5 +42,21 @@ export default class extends Phaser.Scene {
     )
       .setOrigin(0.5, 1)
     player2ScoreDisp.setShadow(0, 0, '#000', 5)
+
+    clickToPlayAgain = this.add.text(
+      this.cameras.main.width / 2,
+      this.cameras.main.height * 0.75,
+      'Click to Play Again'
+    )
+      .setOrigin(0.5, 0.5)
+    clickToPlayAgain.setShadow(0, 0, '#000', 5)
+
+    background.once(
+      'pointerup',
+      () => {
+        window.location.reload()
+      },
+      true
+    )
   }
 }

@@ -22,7 +22,8 @@ let
   damage2Text,
   playerScore,
   player2Score,
-  countDown
+  countDown,
+  waitingOnPlayerText
 
 let lastFired = 0
 let fireLimit = 125
@@ -79,10 +80,7 @@ export default class extends Phaser.Scene {
     super({ key: 'GameScene' })
   }
   init () {
-    Channel.onJoin((event) => {
-      console.log('player joined')
-      player2Data.openTokID = event.target.connection.id
-    })
+    this.scene.pause()
 
     Channel.onPlayer2Updated(data => {
       player2Data.x = data.x
@@ -283,6 +281,15 @@ export default class extends Phaser.Scene {
 
     countDown = this.add.text(this.cameras.main.width / 2, 20, '00:00', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5, 0)
 
+    waitingOnPlayerText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Waiting For Player 2', { fontSize: '60px', fill: '#fff' }).setOrigin(0.5, 0.5)
+    waitingOnPlayerText.setScrollFactor(0)
+
+    Channel.onJoin((event) => {
+      player2Data.openTokID = event.target.connection.id
+      waitingOnPlayerText.setText('')
+      this.scene.resume()
+    })
+
     // Sync Player data
     setInterval(() => {
       if (!gameOver) {
@@ -350,6 +357,19 @@ export default class extends Phaser.Scene {
         }
       )
     }
+
+    background1.x += player.body.deltaX() * 0.3
+    background1.y += player.body.deltaY() * 0.3
+    background2.x += player.body.deltaX() * 0.5
+    background2.y += player.body.deltaY() * 0.5
+    background3.x += player.body.deltaX() * 0.5
+    background3.y += player.body.deltaY() * 0.5
+    background4.x += player.body.deltaX() * 0.6
+    background4.y += player.body.deltaY() * 0.6
+    background5.x += player.body.deltaX() * 0.7
+    background5.y += player.body.deltaY() * 0.7
+    background6.x += player.body.deltaX() * 0.8
+    background6.y += player.body.deltaY() * 0.8
 
     player2.x = player2Data.x
     player2.y = player2Data.y
